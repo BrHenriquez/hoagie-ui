@@ -14,7 +14,6 @@ const api = axios.create({
 api.interceptors.request.use(
   async (config) => {
     const token = await AsyncStorage.getItem('token');
-    console.log('token', token);  
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -49,6 +48,8 @@ export const hoagies = {
     api.post(`/hoagies/${id}/collaborators`, { userId }),
   removeCollaborator: (id: string, userId: string) =>
     api.delete(`/hoagies/${id}/collaborators/${userId}`),
+  search: (query: string) =>
+    api.get(`/hoagies/search?query=${query}`),
 };
 
 export const comments = {

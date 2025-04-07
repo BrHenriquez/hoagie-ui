@@ -9,6 +9,7 @@ import RegisterScreen from "../screens/Register/Register"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import { createNativeStackNavigator } from "@react-navigation/native-stack"
 import { useUserContext } from "../hooks/useUser"
+import { theme } from "../theme/theme"
 
 type RootStackParamList = {
     Onboarding: undefined
@@ -26,7 +27,6 @@ const MainNavigator = () => {
 
     const isLoggedIn = useMemo((): boolean => {
         const token = AsyncStorage.getItem('token');
-        console.log('user', user, 'token', token);
         return token !== undefined && token !== null && user !== null;
     }, [user, AsyncStorage]);
 
@@ -34,26 +34,42 @@ const MainNavigator = () => {
     if (!isLoggedIn) {
         return <Stack.Navigator initialRouteName={Screens.ONBOARDING} screenOptions={{ headerShown: false, headerTitle: '' }}>
             <Stack.Screen name={Screens.ONBOARDING} component={OnboardingScreen} />
-            <Stack.Screen name={Screens.LOGIN} component={LoginScreen} options={{ headerShown: true }} />
-            <Stack.Screen name={Screens.REGISTER} component={RegisterScreen} options={{ headerShown: true }} />
+            <Stack.Screen
+                name={Screens.LOGIN}
+                component={LoginScreen}
+                options={{
+                    headerShown: true,
+                    headerTransparent: true,
+                    headerTitle: '',
+                    headerBackTitleVisible: false,
+                }} />
+            <Stack.Screen name={Screens.REGISTER} component={RegisterScreen} options={{
+                headerShown: true,
+                headerTransparent: true,
+                headerTitle: '',
+                headerBackTitleVisible: false,
+            }} />
         </Stack.Navigator>
     }
 
     return (
-            <Stack.Navigator initialRouteName={Screens.HOME} screenOptions={{ headerShown: false, headerTitle: '' }}>
-                <Stack.Screen name={Screens.HOME} component={HomeScreen} />
-                <Stack.Screen 
+        <Stack.Navigator initialRouteName={Screens.HOME} screenOptions={{ headerShown: false, headerTitle: '' }}>
+            <Stack.Screen name={Screens.HOME} component={HomeScreen} />
+            <Stack.Screen
                 name={Screens.CREATE_HOAGIE}
                 component={CreateHoagieScreen}
-                options={{ 
+                options={{
                     headerShown: true,
-                    title: 'Create Hoagie',
+                    headerTitle: 'Create Hoagie',
+                    headerTitleStyle: {
+                        color: 'black',
+                    },
                     headerStyle: {
-                         backgroundColor: '#e3cb85'
+                        backgroundColor: theme.hoagieColors.header,
                     },
                 }} />
-                <Stack.Screen name={Screens.HOAGIE_DETAIL} component={HoagieDetailScreen} options={{ headerShown: true, title: 'Hoagie Detail', headerStyle: { backgroundColor: '#e3cb85' } }} />
-            </Stack.Navigator>
+            <Stack.Screen name={Screens.HOAGIE_DETAIL} component={HoagieDetailScreen} options={{ headerShown: true, headerTitle: 'Hoagie Detail', headerStyle: { backgroundColor: '#e3cb85' } }} />
+        </Stack.Navigator>
     )
 }
 

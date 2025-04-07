@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { View, StyleSheet } from 'react-native';
-import { TextInput, Button, Text } from 'react-native-paper';
+import { View, StyleSheet, Image } from 'react-native';
+import { Button, Snackbar, Text } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { auth } from '../../services/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useUserContext } from '../../hooks/useUser';
-
+import { Hoagie } from '../../assets/index.ts';
+import { theme } from '../../theme/theme.ts';
+import InputStyled from '../../components/Input/InputStyled.tsx';
 const RegisterScreen = () => {
     const navigation = useNavigation();
     const [name, setName] = useState('');
@@ -19,7 +21,7 @@ const RegisterScreen = () => {
         try {
             setLoading(true);
             setError('');
-            const {data: {user, access_token} } = await auth.register(name, email, password);
+            const { data: { data: { user, access_token } } } = await auth.register(name, email, password);
             setUser(user);
             await AsyncStorage.setItem('token', access_token);
         } catch (err) {
@@ -31,35 +33,40 @@ const RegisterScreen = () => {
 
     return (
         <View style={styles.container}>
+            <Image source={Hoagie} style={styles.image} />
             <Text style={styles.title}>Create Account</Text>
             <Text style={styles.subtitle}>Please enter your details to create an account</Text>
-            <TextInput
+            <InputStyled
                 label="Name"
                 value={name}
                 onChangeText={setName}
                 style={styles.input}
+                autoCapitalize='sentences'
+                textColor={theme.hoagieColors.text}
             />
-            <TextInput
+            <InputStyled
                 label="Email"
                 value={email}
                 onChangeText={setEmail}
                 style={styles.input}
                 autoCapitalize="none"
                 keyboardType="email-address"
+                textColor={theme.hoagieColors.text}
             />
-            <TextInput
+            <InputStyled
                 label="Password"
                 value={password}
                 onChangeText={setPassword}
                 style={styles.input}
                 secureTextEntry
             />
-            {error ? <Text style={styles.error}>{error}</Text> : null}
+            {error ? <Snackbar style={styles.error} visible={true} onDismiss={() => setError('')} >{error}</Snackbar> : null}
             <Button
                 mode="contained"
                 onPress={handleRegister}
                 loading={loading}
                 style={styles.button}
+                disabled={loading || !name || !email || !password}
             >
                 Register
             </Button>
@@ -79,6 +86,7 @@ const styles = StyleSheet.create({
         flex: 1,
         padding: 20,
         justifyContent: 'center',
+        backgroundColor: theme.hoagieColors.text
     },
     title: {
         fontSize: 32,
@@ -101,6 +109,11 @@ const styles = StyleSheet.create({
         color: 'red',
         textAlign: 'center',
         marginBottom: 10,
+    },
+    image: {
+        width: '70%',
+        height: '25%',
+        alignSelf: 'center',
     },
 });
 

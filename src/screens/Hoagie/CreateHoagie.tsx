@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
-import { TextInput, Button, Text } from 'react-native-paper';
+import { Button, Text } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { hoagies } from '../../services/api';
 import { HoagieFormData } from '../../types';
+import InputStyled from '../../components/Input/InputStyled';
 
 const CreateHoagieScreen = () => {
   const navigation = useNavigation();
@@ -67,7 +68,7 @@ const CreateHoagieScreen = () => {
 
   return (
     <ScrollView style={styles.container}>
-      <TextInput
+      <InputStyled
         label="Hoagie Name"
         value={formData.name}
         onChangeText={text => setFormData(prev => ({ ...prev, name: text }))}
@@ -77,7 +78,7 @@ const CreateHoagieScreen = () => {
       <Text style={styles.sectionTitle}>Ingredients</Text>
       {formData.ingredients.map((ingredient, index) => (
         <View key={index} style={styles.ingredientRow}>
-          <TextInput
+          <InputStyled
             label={`Ingredient ${index + 1}`}
             value={ingredient}
             onChangeText={text => handleIngredientChange(text, index)}
@@ -87,6 +88,7 @@ const CreateHoagieScreen = () => {
             mode="outlined"
             onPress={() => handleRemoveIngredient(index)}
             style={styles.removeButton}
+            textColor="black"
           >
             Remove
           </Button>
@@ -97,11 +99,12 @@ const CreateHoagieScreen = () => {
         mode="outlined"
         onPress={handleAddIngredient}
         style={styles.addButton}
+        textColor="black"
       >
         Add Ingredient
       </Button>
 
-      <TextInput
+      <InputStyled
         label="Picture URL (optional)"
         value={formData.picture}
         onChangeText={text => setFormData(prev => ({ ...prev, picture: text }))}
@@ -116,6 +119,7 @@ const CreateHoagieScreen = () => {
         loading={loading}
         disabled={loading || !formData.name.trim()}
         style={styles.submitButton}
+        textColor="black"
       >
         Create Hoagie
       </Button>

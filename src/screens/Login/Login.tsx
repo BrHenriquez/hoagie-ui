@@ -1,12 +1,16 @@
 import * as React from 'react';
 import { useState } from 'react';
-import { View, StyleSheet } from 'react-native';
-import { TextInput, Button, Text } from 'react-native-paper';
+import { View, StyleSheet, Image } from 'react-native';
+import { Button, Text, Snackbar } from 'react-native-paper';
 import { auth } from '../../services/api.ts';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useNavigation} from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { Screens } from '../../constants/screens.ts';
 import { useUserContext } from '../../hooks/useUser';
+import { theme } from '../../theme/theme.ts';
+import { Hoagie } from '../../assets/index.ts';
+import InputStyled from '../../components/Input/InputStyled.tsx';
+
 const LoginScreen = ({ route }: { route: { params: { email: string, password: string } } }) => {
   const [email, setEmail] = useState(route.params?.email);
   const [password, setPassword] = useState(route.params?.password);
@@ -19,17 +23,10 @@ const LoginScreen = ({ route }: { route: { params: { email: string, password: st
     try {
       setLoading(true);
       setError('');
-      const {data: {data}} = await auth.login(email, password);
-      console.log('data login', data);
-      setUser({
-        name: data.name,
-        email: data.email,
-        id: data._id,
-      });
+      const { data: { data } } = await auth.login(email.toLowerCase().trim(), password.trim());
+      setUser(data?.user);
       await AsyncStorage.setItem('token', data.access_token);
-      await AsyncStorage.setItem('isLoggedIn', 'true');
     } catch (err) {
-      console.log('error login', err);
       setError('Invalid email or password');
     } finally {
       setLoading(false);
@@ -38,8 +35,9 @@ const LoginScreen = ({ route }: { route: { params: { email: string, password: st
 
   return (
     <View style={styles.container}>
+      <Image source={Hoagie} style={styles.image} />
       <Text style={styles.title}>Hoagie Hub</Text>
-      <TextInput
+      <InputStyled
         label="Email"
         value={email}
         onChangeText={setEmail}
@@ -47,18 +45,22 @@ const LoginScreen = ({ route }: { route: { params: { email: string, password: st
         autoCapitalize="none"
         keyboardType="email-address"
       />
-      <TextInput
+      <InputStyled
         label="Password"
         value={password}
         onChangeText={setPassword}
         style={styles.input}
+        secureTextEntry
+        theme= {{ colors : { primary: theme.hoagieColors.text }}}
       />
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+      {error ? <Snackbar style={styles.error} visible={true} onDismiss={() => setError('')} >{error}</Snackbar> : null}
       <Button
         mode="contained"
         onPress={handleLogin}
         loading={loading}
         style={styles.button}
+        textColor="black"
+        disabled={loading || !email || !password}
       >
         Login
       </Button>
@@ -78,6 +80,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     justifyContent: 'center',
+    backgroundColor: theme.hoagieColors.text
   },
   title: {
     fontSize: 32,
@@ -95,6 +98,11 @@ const styles = StyleSheet.create({
     color: 'red',
     textAlign: 'center',
     marginBottom: 10,
+  },
+  image: {
+    width: '70%',
+    height: '25%',
+    alignSelf: 'center',
   },
 });
 

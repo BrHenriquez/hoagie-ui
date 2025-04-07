@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, ScrollView, Image, RefreshControl } from 'react-native';
-import { Text, Card, Button, TextInput, ActivityIndicator } from 'react-native-paper';
+import { View, StyleSheet, ScrollView, RefreshControl } from 'react-native';
+import {  ActivityIndicator } from 'react-native-paper';
 import { useRoute } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { hoagies, comments } from '../../services/api';
 import { Hoagie, Comment } from '../../types';
+import { useUserContext } from '../../hooks/useUser';
+import HoagieCardDescription from '../../components/Card/HoagieCardDescription';
+import Comments from '../../components/Comment/Comments';
 
-const HoagieDetailScreen = ({navigation}: {navigation: NativeStackNavigationProp<any>}) => {
+const HoagieDetailScreen = ({ navigation }: { navigation: NativeStackNavigationProp }) => {
   const route = useRoute();
   const { id } = route.params as { id: string };
-
+  const { user } = useUserContext();
   const [hoagie, setHoagie] = useState<Hoagie | null>(null);
   const [commentList, setCommentList] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
@@ -28,8 +31,11 @@ const HoagieDetailScreen = ({navigation}: {navigation: NativeStackNavigationProp
   const loadHoagie = async () => {
     try {
       setLoading(true);
-      const {data: {data}} = await hoagies.getOne(id);
+      const { data: { data } } = await hoagies.getOne(id);
       setHoagie(data);
+      navigation.setOptions({
+        headerTitle: data?.name ?? 'Hoagie Detail',
+      });
     } catch (error) {
       console.error('Error loading hoagie:', error);
     } finally {
@@ -60,6 +66,14 @@ const HoagieDetailScreen = ({navigation}: {navigation: NativeStackNavigationProp
     }
   };
 
+  const handleDeleteComment = async (commentId: string) => {
+    try {
+        await comments.delete(commentId);
+        await loadComments()
+    } catch (error) {
+        console.error('Error deleting comment:', error);
+    }
+}
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -73,67 +87,19 @@ const HoagieDetailScreen = ({navigation}: {navigation: NativeStackNavigationProp
   }
 
   return (
-    <ScrollView style={styles.container} refreshControl={<RefreshControl refreshing={loading} onRefresh={() => getDetails()} />}>     
-      <Card style={styles.card}>
-        <Card.Content>
-          {hoagie?.picture && (
-            <Image source={{ uri: hoagie.picture }} style={styles.image} />
-          )}
-          <Text style={styles.title}>{hoagie?.name?? 'No name'}</Text>
-          <Text style={styles.creator}>Created by: {hoagie?.creator?.name?? 'Unknown'}</Text>
-          <Text style={styles.sectionTitle}>Ingredients:</Text>
-          {hoagie?.ingredients?.length > 0 ? hoagie?.ingredients?.map((ingredient, index) => (
-            <Text key={index} style={styles.ingredient}>
-              • {ingredient}
-            </Text>
-          )) : <Text>No ingredients</Text>}
-          {hoagie?.collaborators?.length > 0 && (
-            <>
-              <Text style={styles.sectionTitle}>Collaborators:</Text>
-              {hoagie?.collaborators?.map(collaborator => (
-                <Text key={collaborator._id} style={styles.collaborator}>
-                  • {collaborator.name}
-                </Text>
-              ))}
-            </>
-          )}
-        </Card.Content>
-      </Card>
-
-      <Card style={styles.commentsCard}>
-        <Card.Content>
-          <Text style={styles.sectionTitle}>Comments</Text>
-          {commentLoading ? (
-            <ActivityIndicator style={styles.loader} />
-          ) : (
-            commentList?.length > 0 ? commentList?.map(comment => (
-              <View key={comment._id} style={styles.comment}>
-                <Text style={styles.commentAuthor}>{comment?.user?.name ?? 'Unknown'}</Text>
-                <Text style={styles.commentText}>{comment?.text}</Text>
-                <Text style={styles.commentDate}>
-                  {new Date(comment?.createdAt).toLocaleDateString()}
-                </Text>
-              </View>
-            )) : <Text style={{textAlign: 'center'}}>No comments yet</Text>
-          )}
-
-          <TextInput
-            label="Add a comment"
-            value={newComment}
-            onChangeText={setNewComment}
-            style={styles.commentInput}
-            multiline
-          />
-          <Button
-            mode="contained"
-            onPress={handleAddComment}
-            disabled={!newComment.trim()}
-            style={styles.commentButton}
-          >
-            Post Comment
-          </Button>
-        </Card.Content>
-      </Card>
+    <ScrollView style={styles.container} refreshControl={<RefreshControl refreshing={loading} onRefresh={() => getDetails()} />}>
+      <HoagieCardDescription
+        hoagie={hoagie}
+      />
+      <Comments
+        commentList={commentList}
+        commentLoading={commentLoading}
+        newComment={newComment}
+        setNewComment={setNewComment}
+        handleAddComment={handleAddComment}
+        handleDeleteComment={handleDeleteComment}
+        user={user}
+        />
     </ScrollView>
   );
 };
@@ -179,33 +145,6 @@ const styles = StyleSheet.create({
   collaborator: {
     marginLeft: 10,
     marginBottom: 5,
-  },
-  commentsCard: {
-    marginBottom: 20,
-  },
-  comment: {
-    marginBottom: 15,
-    padding: 10,
-    backgroundColor: '#f5f5f5',
-    borderRadius: 5,
-  },
-  commentAuthor: {
-    fontWeight: 'bold',
-    marginBottom: 5,
-  },
-  commentText: {
-    marginBottom: 5,
-  },
-  commentDate: {
-    color: '#666',
-    fontSize: 12,
-  },
-  commentInput: {
-    marginTop: 10,
-    marginBottom: 10,
-  },
-  commentButton: {
-    marginTop: 5,
   },
   loader: {
     marginVertical: 20,

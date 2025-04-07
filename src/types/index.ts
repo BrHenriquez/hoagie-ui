@@ -2,8 +2,6 @@ export interface User {
   _id: string;
   name: string;
   email: string;
-  createdAt: string;
-  updatedAt: string;
 }
 
 export interface Hoagie {
@@ -29,12 +27,6 @@ export interface Comment {
 export interface PaginatedResponse<T> {
   data: T[];
   total: number;
-}
-
-export interface AuthState {
-  token: string | null;
-  user: User | null;
-  isAuthenticated: boolean;
 }
 
 export interface HoagieFormData {

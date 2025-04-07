@@ -22,6 +22,7 @@ const OnboardingScreen = () => {
                     mode="contained"
                     onPress={() => navigation.navigate(Screens.LOGIN)}
                     style={styles.button}
+                    textColor="black"
                 >
                     Login
                 </Button>
