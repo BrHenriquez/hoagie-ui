@@ -1,9 +1,10 @@
 import * as React from 'react';
 import { View, StyleSheet, ImageBackground, SafeAreaView } from 'react-native';
 import { Button, Text } from 'react-native-paper';
-import Sanwich from '../../assets/images/Sanwich.jpg';
+import { Sanwich } from '../../assets/index';
 import { useNavigation } from '@react-navigation/native';
-import { Screens } from '../../constants/screen-types.ts';
+import { Screens } from '../../constants/screens.ts';
+
 const OnboardingScreen = () => {
     const navigation = useNavigation();
 
@@ -26,7 +27,7 @@ const OnboardingScreen = () => {
                 </Button>
                 <Button
                     mode="contained-tonal"
-                    onPress={() => {}}
+                    onPress={() => navigation.navigate(Screens.REGISTER)}
                     style={styles.button}
                 >
                     Register

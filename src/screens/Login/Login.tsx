@@ -4,20 +4,32 @@ import { View, StyleSheet } from 'react-native';
 import { TextInput, Button, Text } from 'react-native-paper';
 import { auth } from '../../services/api.ts';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
-const LoginScreen = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+import { useNavigation} from '@react-navigation/native';
+import { Screens } from '../../constants/screens.ts';
+import { useUserContext } from '../../hooks/useUser';
+const LoginScreen = ({ route }: { route: { params: { email: string, password: string } } }) => {
+  const [email, setEmail] = useState(route.params?.email);
+  const [password, setPassword] = useState(route.params?.password);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const { setUser } = useUserContext();
+  const navigation = useNavigation();
 
   const handleLogin = async () => {
     try {
       setLoading(true);
       setError('');
-      const response = await auth.login(email, password);
-      await AsyncStorage.setItem('token', response.data.access_token);
+      const {data: {data}} = await auth.login(email, password);
+      console.log('data login', data);
+      setUser({
+        name: data.name,
+        email: data.email,
+        id: data._id,
+      });
+      await AsyncStorage.setItem('token', data.access_token);
+      await AsyncStorage.setItem('isLoggedIn', 'true');
     } catch (err) {
+      console.log('error login', err);
       setError('Invalid email or password');
     } finally {
       setLoading(false);
@@ -40,7 +52,6 @@ const LoginScreen = () => {
         value={password}
         onChangeText={setPassword}
         style={styles.input}
-        secureTextEntry
       />
       {error ? <Text style={styles.error}>{error}</Text> : null}
       <Button
@@ -53,7 +64,7 @@ const LoginScreen = () => {
       </Button>
       <Button
         mode="text"
-        onPress={() => {}}
+        onPress={() => navigation.navigate(Screens.REGISTER)}
         style={styles.button}
       >
         Don't have an account? Register
