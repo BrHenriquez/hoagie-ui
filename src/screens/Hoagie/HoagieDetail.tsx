@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import { View, StyleSheet, ScrollView, RefreshControl } from 'react-native';
-import {  ActivityIndicator } from 'react-native-paper';
+import { ActivityIndicator, Button } from 'react-native-paper';
 import { useRoute } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { hoagies, comments } from '../../services/api';
@@ -8,6 +8,9 @@ import { Hoagie, Comment } from '../../types';
 import { useUserContext } from '../../hooks/useUser';
 import HoagieCardDescription from '../../components/Card/HoagieCardDescription';
 import Comments from '../../components/Comment/Comments';
+import { hoagieColors } from '../../theme/theme';
+import { Screens } from '../../constants/screens';
+import { RootStackParamList } from '../../Navigator/MainNavigator';
 
 const HoagieDetailScreen = ({ navigation }: { navigation: NativeStackNavigationProp }) => {
   const route = useRoute();
@@ -15,35 +18,30 @@ const HoagieDetailScreen = ({ navigation }: { navigation: NativeStackNavigationP
   const { user } = useUserContext();
   const [hoagie, setHoagie] = useState<Hoagie | null>(null);
   const [commentList, setCommentList] = useState<Comment[]>([]);
-  const [newComment, setNewComment] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [commentLoading, setCommentLoading] = useState(false);
+  const [newComment, setNewComment] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
+  const [commentLoading, setCommentLoading] = useState<boolean>(false);
+  const isOwner = useMemo(() => {
+    return hoagie?.creator?._id === user?._id;
+  }, [hoagie?.creator?._id, user?._id]);
 
   useEffect(() => {
     getDetails();
-  }, [id]);
+  }, []);
 
-  const getDetails = async () => {
-    await loadHoagie();
-    await loadComments();
-  }
-
-  const loadHoagie = async () => {
+  const loadHoagie = useCallback(async () => {
     try {
       setLoading(true);
       const { data: { data } } = await hoagies.getOne(id);
       setHoagie(data);
-      navigation.setOptions({
-        headerTitle: data?.name ?? 'Hoagie Detail',
-      });
     } catch (error) {
       console.error('Error loading hoagie:', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
 
-  const loadComments = async () => {
+  const loadComments = useCallback(async () => {
     try {
       setCommentLoading(true);
       const response = await comments.getByHoagie(id);
@@ -53,7 +51,12 @@ const HoagieDetailScreen = ({ navigation }: { navigation: NativeStackNavigationP
     } finally {
       setCommentLoading(false);
     }
-  };
+  }, [id]);
+
+  const getDetails = useCallback(async () => {
+    await loadHoagie();
+    await loadComments();
+  }, [id, loadHoagie, loadComments]);
 
   const handleAddComment = async () => {
     if (!newComment.trim()) return;
@@ -68,12 +71,12 @@ const HoagieDetailScreen = ({ navigation }: { navigation: NativeStackNavigationP
 
   const handleDeleteComment = async (commentId: string) => {
     try {
-        await comments.delete(commentId);
-        await loadComments()
+      await comments.delete(commentId);
+      await loadComments()
     } catch (error) {
-        console.error('Error deleting comment:', error);
+      console.error('Error deleting comment:', error);
     }
-}
+  }
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -88,8 +91,21 @@ const HoagieDetailScreen = ({ navigation }: { navigation: NativeStackNavigationP
 
   return (
     <ScrollView style={styles.container} refreshControl={<RefreshControl refreshing={loading} onRefresh={() => getDetails()} />}>
+      {isOwner ? (
+        <View style={styles.headerContainer}>
+          <Button
+            mode="contained"
+            onPress={() => navigation.navigate(Screens.HOAGIE_FORM, { isEdit: true, hoagie })}
+            textColor={hoagieColors.text}
+          >
+            Edit
+          </Button>
+        </View>
+      ) : null}
       <HoagieCardDescription
         hoagie={hoagie}
+        isOwner={isOwner}
+        fetchDetails={getDetails}
       />
       <Comments
         commentList={commentList}
@@ -99,7 +115,7 @@ const HoagieDetailScreen = ({ navigation }: { navigation: NativeStackNavigationP
         handleAddComment={handleAddComment}
         handleDeleteComment={handleDeleteComment}
         user={user}
-        />
+      />
     </ScrollView>
   );
 };
@@ -148,6 +164,11 @@ const styles = StyleSheet.create({
   },
   loader: {
     marginVertical: 20,
+  },
+  headerContainer: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginBottom: 10,
   },
 });
 

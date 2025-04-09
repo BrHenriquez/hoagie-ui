@@ -1,21 +1,31 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { Button, Text } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { hoagies } from '../../services/api';
-import { HoagieFormData } from '../../types';
+import { HoagieFormData, Hoagie } from '../../types';
 import InputStyled from '../../components/Input/InputStyled';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../../Navigator/MainNavigator';
+import { Screens } from '../../constants/screens';
+import { theme } from '../../theme/theme';
 
-const CreateHoagieScreen = () => {
+const HoagieForm = ({ route }: NativeStackNavigationProp<RootStackParamList, Screens.HOAGIE_FORM>) => {
+  const { isEdit, hoagie } = route.params;
   const navigation = useNavigation();
   const [formData, setFormData] = useState<HoagieFormData>({
-    name: '',
-    ingredients: [''],
-    picture: '',
+    name: hoagie?.name ?? '',
+    ingredients: hoagie?.ingredients ?? [''],
+    picture: hoagie?.picture ?? '',
   });
-  
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string>('');
+
+  useEffect(() => {
+    navigation.setOptions({
+      headerTitle: isEdit ? 'Edit Hoagie' : 'Create Hoagie',
+    });
+  }, [isEdit, navigation]);
 
   const handleAddIngredient = () => {
     setFormData(prev => ({
@@ -44,20 +54,25 @@ const CreateHoagieScreen = () => {
     try {
       setLoading(true);
       setError('');
-      
+
       // Filter out empty ingredients
       const validIngredients = formData.ingredients.filter(ing => ing.trim() !== '');
-      
+
       if (validIngredients.length === 0) {
         setError('Please add at least one ingredient');
         return;
       }
 
-      await hoagies.create({
+      const payload = {
         ...formData,
         ingredients: validIngredients,
-      });
-      
+      }
+      if (isEdit) {
+        await hoagies.update(hoagie?._id, payload);
+      } else {
+        await hoagies.create(payload);
+      }
+
       navigation.goBack();
     } catch (err) {
       setError('Failed to create hoagie. Please try again.');
@@ -88,7 +103,7 @@ const CreateHoagieScreen = () => {
             mode="outlined"
             onPress={() => handleRemoveIngredient(index)}
             style={styles.removeButton}
-            textColor="black"
+            textColor={theme.hoagieColors.text}
           >
             Remove
           </Button>
@@ -99,7 +114,7 @@ const CreateHoagieScreen = () => {
         mode="outlined"
         onPress={handleAddIngredient}
         style={styles.addButton}
-        textColor="black"
+        textColor={theme.hoagieColors.text}
       >
         Add Ingredient
       </Button>
@@ -119,9 +134,9 @@ const CreateHoagieScreen = () => {
         loading={loading}
         disabled={loading || !formData.name.trim()}
         style={styles.submitButton}
-        textColor="black"
+        textColor={theme.hoagieColors.text}
       >
-        Create Hoagie
+        {isEdit ? 'Edit Hoagie' : 'Create Hoagie'}
       </Button>
     </ScrollView>
   );
@@ -165,4 +180,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default CreateHoagieScreen; 
+export default HoagieForm; 

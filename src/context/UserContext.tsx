@@ -1,4 +1,4 @@
-import { createContext, useState, Dispatch, SetStateAction } from "react";
+import { createContext, useState, Dispatch, SetStateAction, useEffect } from "react";
 
 type User = {
   _id: string
@@ -14,9 +14,7 @@ type UserContextType = {
 
 export const UserContext = createContext<UserContextType>({
   user: null,
-  setUser: () => {
-    throw new Error("setUser function must be used within a UserProvider");
-  },
+  setUser: () => {},
 });
 
 type UserProviderProps = {

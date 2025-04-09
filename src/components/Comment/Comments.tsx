@@ -20,7 +20,7 @@ const Comments = ({
     setNewComment,
     handleAddComment,
     user,
-    handleDeleteComment
+    handleDeleteComment,
 }: CommentsProps) => {
 
     return (

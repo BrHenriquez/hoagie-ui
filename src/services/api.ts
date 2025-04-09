@@ -1,8 +1,6 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Screens } from '@/constants/screens';
-
-const API_URL = `http://${process.env.EXPO_PUBLIC_API_URL}/api`;
+import { API_URL } from '@env';
 
 const api = axios.create({
   baseURL: API_URL,
@@ -22,7 +20,6 @@ api.interceptors.request.use(
   async (error) => {
     if (error.response?.status === 401) {
       await AsyncStorage.removeItem('token');
-      await AsyncStorage.removeItem('isLoggedIn');
     }
     return Promise.reject(error);
   }
@@ -36,18 +33,18 @@ export const auth = {
 };
 
 export const hoagies = {
-  getAll: (page: number = 1, limit: number = 10) =>
-    api.get(`/hoagies?page=${page}&limit=${limit}`),
+  getAll: (page: number = 1, search: string = '', limit: number = 10) =>
+    api.get(`/hoagies?page=${page}&limit=${limit}&searchTerm=${search}`),
   getOne: (id: string) => api.get(`/hoagies/${id}`),
   create: (data: { name: string; ingredients: string[]; picture?: string }) =>
     api.post('/hoagies', data),
   update: (id: string, data: Partial<{ name: string; ingredients: string[]; picture?: string }>) =>
     api.patch(`/hoagies/${id}`, data),
   delete: (id: string) => api.delete(`/hoagies/${id}`),
-  addCollaborator: (id: string, userId: string) =>
-    api.post(`/hoagies/${id}/collaborators`, { userId }),
-  removeCollaborator: (id: string, userId: string) =>
-    api.delete(`/hoagies/${id}/collaborators/${userId}`),
+  addCollaborator: (id: string, collaboratorId: string) =>
+    api.post(`/hoagies/${id}/collaborators`, { collaboratorId }),
+  removeCollaborator: (id: string, collaboratorId: string) =>
+    api.delete(`/hoagies/${id}/collaborators/${collaboratorId}`),
   search: (query: string) =>
     api.get(`/hoagies/search?query=${query}`),
 };
@@ -62,5 +59,8 @@ export const comments = {
   delete: (id: string) => api.delete(`/comments/${id}`),
 };
 
+export const user = {
+  getAll: (page: number = 1, limit: number = 10) => api.get(`/users?page=${page}&limit=${limit}`),
+};
 
 export default api;

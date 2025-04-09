@@ -1,6 +1,6 @@
 import { useMemo } from "react"
 import { Screens } from "../constants/screens"
-import CreateHoagieScreen from "../screens/Hoagie/CreateHoagie"
+import HoagieForm from "../screens/Hoagie/HoagieForm"
 import HoagieDetailScreen from "../screens/Hoagie/HoagieDetail"
 import HomeScreen from "../screens/Home/Home"
 import LoginScreen from "../screens/Login/Login"
@@ -10,14 +10,15 @@ import AsyncStorage from "@react-native-async-storage/async-storage"
 import { createNativeStackNavigator } from "@react-navigation/native-stack"
 import { useUserContext } from "../hooks/useUser"
 import { theme } from "../theme/theme"
+import { Hoagie } from "../types"
 
-type RootStackParamList = {
-    Onboarding: undefined
-    Login: { email: string, password: string };
-    Register: undefined;
-    Home: undefined;
-    CreateHoagie: undefined;
-    HoagieDetail: { id: string };
+export type RootStackParamList = {
+    [Screens.ONBOARDING]: undefined
+    [Screens.LOGIN]: { email: string, password: string };
+    [Screens.REGISTER]: undefined;
+    [Screens.HOME]: undefined;
+    [Screens.HOAGIE_FORM]: { isEdit?: boolean, hoagie?: Hoagie };
+    [Screens.HOAGIE_DETAIL]: { id: string };
 }
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -56,11 +57,11 @@ const MainNavigator = () => {
         <Stack.Navigator initialRouteName={Screens.HOME} screenOptions={{ headerShown: false, headerTitle: '' }}>
             <Stack.Screen name={Screens.HOME} component={HomeScreen} />
             <Stack.Screen
-                name={Screens.CREATE_HOAGIE}
-                component={CreateHoagieScreen}
+                name={Screens.HOAGIE_FORM}
+                component={HoagieForm}
                 options={{
                     headerShown: true,
-                    headerTitle: 'Create Hoagie',
+                    headerTitle: 'Hoagie',
                     headerTitleStyle: {
                         color: 'black',
                     },
@@ -68,7 +69,16 @@ const MainNavigator = () => {
                         backgroundColor: theme.hoagieColors.header,
                     },
                 }} />
-            <Stack.Screen name={Screens.HOAGIE_DETAIL} component={HoagieDetailScreen} options={{ headerShown: true, headerTitle: 'Hoagie Detail', headerStyle: { backgroundColor: '#e3cb85' } }} />
+            <Stack.Screen
+                name={Screens.HOAGIE_DETAIL}
+                component={HoagieDetailScreen}
+                options={{
+                    headerShown: true,
+                    headerTitle: 'Hoagie Detail',
+                    headerStyle: {
+                        backgroundColor: '#e3cb85'
+                    }
+                }} />
         </Stack.Navigator>
     )
 }

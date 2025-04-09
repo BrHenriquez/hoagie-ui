@@ -8,6 +8,8 @@ import { useUserContext } from '../../hooks/useUser';
 import { Hoagie } from '../../assets/index.ts';
 import { theme } from '../../theme/theme.ts';
 import InputStyled from '../../components/Input/InputStyled.tsx';
+import { Screens } from '../../constants/screens.ts';
+
 const RegisterScreen = () => {
     const navigation = useNavigation();
     const [name, setName] = useState('');
@@ -72,7 +74,7 @@ const RegisterScreen = () => {
             </Button>
             <Button
                 mode="text"
-                onPress={() => navigation.navigate('Login')}
+                onPress={() => navigation.navigate(Screens.LOGIN)}
                 style={styles.button}
             >
                 Already have an account? Login

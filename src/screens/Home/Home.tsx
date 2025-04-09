@@ -11,11 +11,13 @@ import { useUserContext } from '../../hooks/useUser';
 import HoagieCardSummary from '../../components/Card/HoagieCardSummary';
 import Header from '../../components/Header/Header';
 import InputStyled from '../../components/Input/InputStyled';
+import { hoagieColors } from '../../theme/theme';
 
 const HomeScreen = () => {
     const navigation = useNavigation();
     const { user } = useUserContext();
     const [hoagiesList, setHoagiesList] = useState<Hoagie[]>([]);
+    const [totalHoagies, setTotalHoagies] = useState(0);
     const [loading, setLoading] = useState(false);
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
@@ -23,6 +25,8 @@ const HomeScreen = () => {
     const timerRef = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
+        loadHoagies(1, search);
+
         return () => {
           if (timerRef.current) {
             clearTimeout(timerRef.current);
@@ -30,17 +34,18 @@ const HomeScreen = () => {
         };
       }, []);
 
-    const loadHoagies = useCallback(async (pageNum: number = 1) => {
+    const loadHoagies = useCallback(async (pageNum: number = 1, search: string) => {
         try {
             setLoading(true);
-            const { data: { data: { data } } } = await hoagies.getAll(pageNum);
+            const { data: { data: { data, total } } } = await hoagies.getAll(pageNum, search);
             
             if (pageNum === 1) {
                 setHoagiesList(data);
             } else {
                 setHoagiesList(prev => [...prev, ...data]);
             }
-            setHasMore(data.length > 0);
+            setTotalHoagies(total);
+            setHasMore(data.length < total);
         } catch (error) {
             setLoading(false);
             console.error('Error loading hoagies:', error);
@@ -49,15 +54,11 @@ const HomeScreen = () => {
         };
     }, [setHoagiesList, setLoading, setHasMore]);
 
-    useEffect(() => {
-        loadHoagies();
-    }, []);
-
     const handleLoadMore = useCallback(async () => {
         if (!loading && hasMore && search === '') {
             const nextPage = page + 1;
             setPage(nextPage);
-            await loadHoagies(nextPage);
+            await loadHoagies(nextPage, search);
         }
     }, [loading, hasMore, page, loadHoagies, search]);
 
@@ -70,30 +71,29 @@ const HomeScreen = () => {
               }
               // Set new timer
               timerRef.current = setTimeout(async () => {
-                    const { data: { data: { data } } }  = await hoagies.search(text);
-                    setHoagiesList(data);
+                    await loadHoagies(page, text);
               }, 500);
         } catch (error) {
             console.error('Error searching hoagies:', error);
         } finally {
             setLoading(false);
         }
-    }, [search, setHoagiesList, setLoading]);   
+    }, [search, setHoagiesList, setLoading, page, loadHoagies]);   
 
     return (
         <SafeAreaView style={{ flex: 1 }}>
             <Header />
             <View style={styles.container}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <View style={styles.subHeaderContainer}>
                     <Text style={{ maxWidth: '60%' }} ellipsizeMode='tail' lineBreakMode='clip' numberOfLines={1}>Hi, {user?.name ?? ''} 👋</Text>
-                    {hoagiesList?.length > 0 ? <Button mode="contained" onPress={() => navigation.navigate(Screens.CREATE_HOAGIE)} textColor="black">Create Hoagie</Button> : null}
+                    {hoagiesList?.length > 0 ? <Button mode="contained" onPress={() => navigation.navigate(Screens.HOAGIE_FORM)} textColor={hoagieColors.text}>Create Hoagie</Button> : null}
                 </View>
-                <Text style={{ color: 'black' }}>Showing {hoagiesList.length ?? 0} hoagies</Text>
+                <Text style={{ color: 'black' }}>{hoagiesList.length === totalHoagies ? `Showing ${totalHoagies} hoagies` : `Showing ${hoagiesList.length} of ${totalHoagies} hoagies`}</Text>
                     <View>
                         <InputStyled mode='outlined' label="Search" value={search} onChangeText={handleSearch} autoCapitalize='none' />
                     </View>
                 <FlatList
-                    refreshControl={<RefreshControl refreshing={loading} onRefresh={() => loadHoagies()} />}
+                    refreshControl={<RefreshControl refreshing={loading} onRefresh={() => loadHoagies(1, search)} />}
                     alwaysBounceVertical
                     data={hoagiesList}
                     renderItem={({ item }) => <HoagieCardSummary item={item} navigation={navigation} />}
@@ -122,6 +122,11 @@ const styles = StyleSheet.create({
     loader: {
         marginVertical: 20,
     },
+    subHeaderContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center'
+    }
 });
 
 export default HomeScreen; 

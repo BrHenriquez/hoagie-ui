@@ -11,11 +11,11 @@ import { theme } from '../../theme/theme.ts';
 import { Hoagie } from '../../assets/index.ts';
 import InputStyled from '../../components/Input/InputStyled.tsx';
 
-const LoginScreen = ({ route }: { route: { params: { email: string, password: string } } }) => {
-  const [email, setEmail] = useState(route.params?.email);
-  const [password, setPassword] = useState(route.params?.password);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+const LoginScreen = () => {
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string>('');
   const { setUser } = useUserContext();
   const navigation = useNavigation();
 

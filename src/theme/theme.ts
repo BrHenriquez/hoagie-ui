@@ -2,7 +2,7 @@
 import { configureFonts, DefaultTheme, ThemeBase } from 'react-native-paper';
 import { ThemeProp } from 'react-native-paper/lib/typescript/types';
 
-const hoagieColors = {
+export const hoagieColors = {
   primary: '#F5D547',    // Warm Baguette (Primary buttons, app bar)
   accent: '#E94F37',     // Tomato Red (CTAs, errors)
   success: '#5CAB7D',    // Fresh Lettuce (Success states)
