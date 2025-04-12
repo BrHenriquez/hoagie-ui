@@ -86,7 +86,7 @@ const HomeScreen = () => {
             <View style={styles.container}>
                 <View style={styles.subHeaderContainer}>
                     <Text style={{ maxWidth: '60%' }} ellipsizeMode='tail' lineBreakMode='clip' numberOfLines={1}>Hi, {user?.name ?? ''} 👋</Text>
-                    {hoagiesList?.length > 0 ? <Button mode="contained" onPress={() => navigation.navigate(Screens.HOAGIE_FORM)} textColor={hoagieColors.text}>Create Hoagie</Button> : null}
+                    {hoagiesList?.length > 0 ? <Button mode="contained" onPress={() => navigation.navigate(Screens.HOAGIE_FORM, { isEdit: false, hoagie: {} })} textColor={hoagieColors.text}>Create Hoagie</Button> : null}
                 </View>
                 <Text style={{ color: 'black' }}>{hoagiesList.length === totalHoagies ? `Showing ${totalHoagies} hoagies` : `Showing ${hoagiesList.length} of ${totalHoagies} hoagies`}</Text>
                     <View>

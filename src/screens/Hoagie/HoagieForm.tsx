@@ -11,7 +11,7 @@ import { Screens } from '../../constants/screens';
 import { theme } from '../../theme/theme';
 
 const HoagieForm = ({ route }: NativeStackNavigationProp<RootStackParamList, Screens.HOAGIE_FORM>) => {
-  const { isEdit, hoagie } = route.params;
+  const { isEdit = false, hoagie = { name: '', ingredients: [''], picture: '' } } = route.params;
   const navigation = useNavigation();
   const [formData, setFormData] = useState<HoagieFormData>({
     name: hoagie?.name ?? '',
